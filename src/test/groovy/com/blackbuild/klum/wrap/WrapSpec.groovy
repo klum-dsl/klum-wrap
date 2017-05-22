@@ -26,10 +26,11 @@ package com.blackbuild.klum.wrap
 import com.blackbuild.klum.wrap.ast.KlumWrapTransformation
 
 import static groovyjarjarasm.asm.Opcodes.ACC_FINAL
+import static groovyjarjarasm.asm.Opcodes.ACC_PUBLIC
 
 class WrapSpec extends AbstractWrapSpec {
 
-    def "Delegate class has single parameter constructor"() {
+    def "Delegate class has a single parameter constructor"() {
         when:
         createClass '''
 package pk
@@ -38,8 +39,8 @@ package pk
 class DecoString {}
 '''
         then:
-        clazz.constructors.size() == 1
-        clazz.getConstructor(String) != null
+        clazz.declaredConstructors.size() == 1
+        clazz.getDeclaredConstructor(String).modifiers & ACC_PUBLIC
     }
 
     def "Delegate field is final"() {
@@ -69,6 +70,60 @@ class DecoString {}
         instance.length() == 3
     }
 
+    def "Inner object is wrapped"() {
+        given:
+        createClass '''
+package pk
+
+class Config {
+    String name
+}
+
+@Wrap(Config)
+class EnhancedConfig {
+    BigName name
+}
+
+@Wrap(String)
+class BigName {
+}
+'''
+
+        def model = getClass("pk.Config").newInstance()
+        model.name = "bla"
+
+        when:
+        def wrap = getClass("pk.EnhancedConfig").newInstance(model)
+
+        then:
+        noExceptionThrown()
+        wrap.name.class.name == "pk.BigName"
+    }
+
+    def "Setters are not delegated"() {
+        given:
+        createClass '''
+package pk
+
+class Config {
+    String name
+}
+
+@Wrap(Config)
+class EnhancedConfig {
+}
+'''
+
+        def model = getClass("pk.Config").newInstance()
+        model.name = "bla"
+        def wrap = getClass("pk.EnhancedConfig").newInstance(model)
+
+        when:
+        wrap.name = "can't override"
+
+        then:
+        thrown(ReadOnlyPropertyException)
+    }
 
 
 

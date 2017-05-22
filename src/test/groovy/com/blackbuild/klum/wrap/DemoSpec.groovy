@@ -22,9 +22,8 @@
  * SOFTWARE.
  */
 package com.blackbuild.klum.wrap
-/**
- * Created by steph on 15.05.2017.
- */
+
+
 class DemoSpec extends AbstractWrapSpec {
 
     def "Basic usecase"() {
