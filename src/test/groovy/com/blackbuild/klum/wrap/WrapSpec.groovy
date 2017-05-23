@@ -125,6 +125,38 @@ class EnhancedConfig {
         thrown(ReadOnlyPropertyException)
     }
 
+    def "Inner list is wrapped"() {
+        given:
+        createClass '''
+package pk
+
+class Config {
+    List<String> names = ["bla", "blub"]
+}
+
+@Wrap(Config)
+class EnhancedConfig {
+    List<BigName> name
+}
+
+@Wrap(String)
+class BigName {
+    String getValue() {
+        getName()
+    }
+}
+'''
+
+        def model = getClass("pk.Config").newInstance()
+
+        when:
+        def wrap = getClass("pk.EnhancedConfig").newInstance(model)
+
+        then:
+        noExceptionThrown()
+        wrap.names[0].class.name == "pk.BigName"
+        wrap.names.collect { it.value } == ["bla", "blub"]
+    }
 
 
 }

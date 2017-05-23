@@ -33,6 +33,9 @@ import org.codehaus.groovy.transform.AbstractASTTransformation;
 import org.codehaus.groovy.transform.DelegateASTTransformation;
 import org.codehaus.groovy.transform.GroovyASTTransformation;
 
+import java.util.Collection;
+
+import static org.codehaus.groovy.ast.ClassHelper.makeWithoutCaching;
 import static org.codehaus.groovy.ast.tools.GeneralUtils.*;
 
 @GroovyASTTransformation
@@ -41,6 +44,8 @@ public class KlumWrapTransformation extends AbstractASTTransformation {
     public static final ClassNode WRAP_ANNOTATION = ClassHelper.make(Wrap.class);
     public static final String DELEGATE_FIELD_NAME = "delegate";
     public static final ClassNode DELEGATE_ANNOTATION = ClassHelper.make(Delegate.class);
+    public static ClassNode COLLECTION_TYPE = makeWithoutCaching(Collection.class);
+
     private ClassNode annotatedClass;
     private AnnotationNode wrapAnnotation;
     private ClassNode delegateClass;
@@ -95,25 +100,65 @@ public class KlumWrapTransformation extends AbstractASTTransformation {
 
     private void handleProperty(PropertyNode property, BlockStatement constructorBody) {
         ClassNode fieldType = property.getType();
+        String propertyName = property.getName();
 
-        if (!fieldType.getAnnotations(WRAP_ANNOTATION).isEmpty()) {
-            constructorBody.addStatement(assignS(attrX(varX("this"), constX(property.getName())), ctorX(fieldType, propX(varX(DELEGATE_FIELD_NAME), property.getName()))));
+        if (isWrappedType(fieldType)) {
+            constructorBody.addStatement(assignS(attrX(varX("this"), constX(propertyName)), ctorX(fieldType, propX(varX(DELEGATE_FIELD_NAME), propertyName))));
             property.getField().setModifiers(property.getModifiers() | ACC_FINAL);
             annotatedClass.addMethod(
-                    "get" + Verifier.capitalize(property.getName()),
+                    "get" + Verifier.capitalize(propertyName),
                     ACC_PUBLIC,
                     fieldType,
                     Parameter.EMPTY_ARRAY,
                     ClassNode.EMPTY_ARRAY,
-                    returnS(attrX(varX("this"), constX(property.getName())))
+                    returnS(attrX(varX("this"), constX(propertyName)))
             );
-        }
+        } else {
+            ClassNode elementType = getElementType(delegateField);
+            if (isWrappedType(elementType)) {
+                if (isCollection(fieldType)) {
 
+
+
+                } else if (isMap(fieldType)) {
+
+                }
+            }
+        }
+    }
+
+    private boolean isWrappedType(ClassNode fieldType) {
+        return fieldType != null && !fieldType.getAnnotations(WRAP_ANNOTATION).isEmpty();
     }
 
     private void delegateToDelegate() {
         ASTNode[] astNodes = new ASTNode[] { delegateField.getAnnotations(DELEGATE_ANNOTATION).get(0), delegateField };
         new DelegateASTTransformation().visit(astNodes, sourceUnit);
     }
+
+    static boolean isCollection(ClassNode type) {
+        return type.equals(COLLECTION_TYPE) || type.implementsInterface(COLLECTION_TYPE);
+    }
+
+    static boolean isMap(ClassNode type) {
+        return type.equals(ClassHelper.MAP_TYPE) || type.implementsInterface(ClassHelper.MAP_TYPE);
+    }
+
+    static GenericsType[] getGenericsTypes(FieldNode fieldNode) {
+        GenericsType[] types = fieldNode.getType().getGenericsTypes();
+
+//        if (types == null)
+//            ASTHelper.addCompileError(fieldNode.getOwner().getModule().getContext(), "Lists and Maps need to be assigned an explicit Generic Type", fieldNode);
+        return types;
+    }
+
+    static ClassNode getElementType(FieldNode fieldNode) {
+        if (isMap(fieldNode.getType()))
+            return getGenericsTypes(fieldNode)[1].getType();
+        else if (isCollection(fieldNode.getType()))
+            return getGenericsTypes(fieldNode)[0].getType();
+        else return null;
+    }
+
 
 }
