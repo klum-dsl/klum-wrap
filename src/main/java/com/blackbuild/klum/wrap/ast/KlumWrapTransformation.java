@@ -35,6 +35,9 @@ import org.codehaus.groovy.transform.GroovyASTTransformation;
 
 import java.util.Collection;
 
+import static com.blackbuild.klum.common.CommonAstHelper.getElementType;
+import static com.blackbuild.klum.common.CommonAstHelper.isCollection;
+import static com.blackbuild.klum.common.CommonAstHelper.isMap;
 import static org.codehaus.groovy.ast.ClassHelper.makeWithoutCaching;
 import static org.codehaus.groovy.ast.tools.GeneralUtils.*;
 
@@ -135,30 +138,5 @@ public class KlumWrapTransformation extends AbstractASTTransformation {
         ASTNode[] astNodes = new ASTNode[] { delegateField.getAnnotations(DELEGATE_ANNOTATION).get(0), delegateField };
         new DelegateASTTransformation().visit(astNodes, sourceUnit);
     }
-
-    static boolean isCollection(ClassNode type) {
-        return type.equals(COLLECTION_TYPE) || type.implementsInterface(COLLECTION_TYPE);
-    }
-
-    static boolean isMap(ClassNode type) {
-        return type.equals(ClassHelper.MAP_TYPE) || type.implementsInterface(ClassHelper.MAP_TYPE);
-    }
-
-    static GenericsType[] getGenericsTypes(FieldNode fieldNode) {
-        GenericsType[] types = fieldNode.getType().getGenericsTypes();
-
-//        if (types == null)
-//            ASTHelper.addCompileError(fieldNode.getOwner().getModule().getContext(), "Lists and Maps need to be assigned an explicit Generic Type", fieldNode);
-        return types;
-    }
-
-    static ClassNode getElementType(FieldNode fieldNode) {
-        if (isMap(fieldNode.getType()))
-            return getGenericsTypes(fieldNode)[1].getType();
-        else if (isCollection(fieldNode.getType()))
-            return getGenericsTypes(fieldNode)[0].getType();
-        else return null;
-    }
-
 
 }

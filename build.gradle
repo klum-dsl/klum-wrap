@@ -40,6 +40,7 @@ jacoco {
 }
 
 dependencies {
+    compile "com.blackbuild.klum.common:klum-common:0.1"
     compile "org.codehaus.groovy:groovy-all:${groovyVersion}"
     compile "com.intellij:openapi:7.0.3"
     testCompile("org.spockframework:spock-core:${spockVersion}")
