@@ -63,7 +63,7 @@ modifyPom {
     project {
         name 'KlumWrap'
         packaging 'jar'
-        description 'A transformation for creating convenient configuration model DSLs.'
+        description 'An AST Transformation for creating transitive decorators'
         url 'https://github.com/klum-dsl/klum-wrap'
 
         scm {
@@ -74,8 +74,8 @@ modifyPom {
 
         licenses {
             license {
-                name 'The Apache License, Version 2.0'
-                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                name 'The MIT License (MIT)'
+                url 'http://opensource.org/licenses/MIT'
             }
         }
 
