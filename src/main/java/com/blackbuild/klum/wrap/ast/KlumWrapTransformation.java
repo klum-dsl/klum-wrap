@@ -27,6 +27,8 @@ import com.blackbuild.klum.wrap.Wrap;
 import groovy.lang.Delegate;
 import org.codehaus.groovy.ast.*;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
+import org.codehaus.groovy.ast.stmt.ForStatement;
+import org.codehaus.groovy.ast.tools.GenericsUtils;
 import org.codehaus.groovy.classgen.Verifier;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.transform.AbstractASTTransformation;
@@ -34,10 +36,11 @@ import org.codehaus.groovy.transform.DelegateASTTransformation;
 import org.codehaus.groovy.transform.GroovyASTTransformation;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
-import static com.blackbuild.klum.common.CommonAstHelper.getElementType;
-import static com.blackbuild.klum.common.CommonAstHelper.isCollection;
-import static com.blackbuild.klum.common.CommonAstHelper.isMap;
+import static com.blackbuild.klum.common.CommonAstHelper.*;
+import static org.codehaus.groovy.ast.ClassHelper.make;
 import static org.codehaus.groovy.ast.ClassHelper.makeWithoutCaching;
 import static org.codehaus.groovy.ast.tools.GeneralUtils.*;
 
@@ -105,7 +108,8 @@ public class KlumWrapTransformation extends AbstractASTTransformation {
         ClassNode fieldType = property.getType();
         String propertyName = property.getName();
 
-        if (isWrappedType(fieldType)) {
+        ClassNode wrappedType = getWrappedTypeFor(fieldType);
+        if (wrappedType != null) {
             constructorBody.addStatement(assignS(attrX(varX("this"), constX(propertyName)), ctorX(fieldType, propX(varX(DELEGATE_FIELD_NAME), propertyName))));
             property.getField().setModifiers(property.getModifiers() | ACC_FINAL);
             annotatedClass.addMethod(
@@ -117,21 +121,47 @@ public class KlumWrapTransformation extends AbstractASTTransformation {
                     returnS(attrX(varX("this"), constX(propertyName)))
             );
         } else {
-            ClassNode elementType = getElementType(delegateField);
-            if (isWrappedType(elementType)) {
+            ClassNode elementType = getElementType(property.getField());
+            wrappedType = getWrappedTypeFor(elementType);
+            if (wrappedType != null) {
+                initializeCollectionOrMap(property.getField());
                 if (isCollection(fieldType)) {
-
-
-
+                    constructorBody.addStatement(
+                            new ForStatement(
+                                    param(wrappedType, "$next"),
+                                    propX(varX(DELEGATE_FIELD_NAME), propertyName),
+                                    stmt(callX(varX(propertyName), "add", ctorX(elementType, varX("$next"))))
+                            )
+                    );
                 } else if (isMap(fieldType)) {
-
+                    constructorBody.addStatement(
+                            new ForStatement(
+                                    param(GenericsUtils.makeClassSafeWithGenerics(make(Map.Entry.class), fieldType.getGenericsTypes()[0], new GenericsType(wrappedType)), "$next"),
+                                    propX(varX(DELEGATE_FIELD_NAME), propertyName),
+                                    stmt(callX(varX(propertyName), "put", args(propX(varX("$next"), "key"), ctorX(elementType, propX(varX("$next"), "value")))))
+                            )
+                    );
                 }
             }
+            property.getField().setModifiers(property.getModifiers() | ACC_FINAL);
+            annotatedClass.addMethod(
+                    "get" + Verifier.capitalize(propertyName),
+                    ACC_PUBLIC,
+                    fieldType,
+                    Parameter.EMPTY_ARRAY,
+                    ClassNode.EMPTY_ARRAY,
+                    returnS(callX(attrX(varX("this"), constX(propertyName)), "asImmutable"))
+            );
         }
     }
 
-    private boolean isWrappedType(ClassNode fieldType) {
-        return fieldType != null && !fieldType.getAnnotations(WRAP_ANNOTATION).isEmpty();
+    private ClassNode getWrappedTypeFor(ClassNode fieldType) {
+        if (fieldType == null)
+            return null;
+        List<AnnotationNode> annotations = fieldType.getAnnotations(WRAP_ANNOTATION);
+        if (annotations.isEmpty())
+            return null;
+        return getMemberClassValue(annotations.get(0), "value");
     }
 
     private void delegateToDelegate() {

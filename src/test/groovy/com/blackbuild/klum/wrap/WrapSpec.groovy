@@ -136,13 +136,13 @@ class Config {
 
 @Wrap(Config)
 class EnhancedConfig {
-    List<BigName> name
+    List<BigName> names
 }
 
 @Wrap(String)
 class BigName {
     String getValue() {
-        getName()
+        delegate.toUpperCase()
     }
 }
 '''
@@ -155,7 +155,42 @@ class BigName {
         then:
         noExceptionThrown()
         wrap.names[0].class.name == "pk.BigName"
-        wrap.names.collect { it.value } == ["bla", "blub"]
+        wrap.names.collect { it.value } == ["BLA", "BLUB"]
+        wrap.names.collect { it.length() } == [3, 4]
+    }
+
+    def "Inner map is wrapped"() {
+        given:
+        createClass '''
+package pk
+
+class Config {
+    Map<String, String> names = [a:"bla", b:"blub"]
+}
+
+@Wrap(Config)
+class EnhancedConfig {
+    Map<String, BigName> names
+}
+
+@Wrap(String)
+class BigName {
+    String getValue() {
+        delegate.toUpperCase()
+    }
+}
+'''
+
+        def model = getClass("pk.Config").newInstance()
+
+        when:
+        def wrap = getClass("pk.EnhancedConfig").newInstance(model)
+
+        then:
+        noExceptionThrown()
+        wrap.names.a.class.name == "pk.BigName"
+        wrap.names.a.value == "BLA"
+        wrap.names.a.length() == 3
     }
 
 
