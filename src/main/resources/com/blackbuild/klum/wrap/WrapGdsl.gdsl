@@ -44,6 +44,9 @@ contributor(ctype:hasAnnotation("com.blackbuild.klum.wrap.Wrap")) {
 
     property(name: "delegate", type: delegateType.canonicalText, doc: "the wrapped object")
 
-    // TODO: Explicitly delegate
-    delegatesTo(findClass(delegateType.canonicalText))
+    def delegateClass = findClass(delegateType.canonicalText)
+
+    delegateClass.methods.each { delegateMethod ->
+        method(name: delegateMethod.name, params: delegateMethod.paramStringVector, type: delegateMethod.returnType?.canonicalText)
+    }
 }

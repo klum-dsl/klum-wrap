@@ -27,6 +27,11 @@ import com.blackbuild.klum.wrap.Wrap
 
 class Config {
     List<String> names = ["bla", "blub"]
+
+    String bla
+
+    /** blub */
+    String doIt() {}
 }
 
 @Wrap(Config)
@@ -42,5 +47,7 @@ class BigName {
 }
 
 println new EnhancedConfig(new Config()).names
+println new EnhancedConfig(new Config()).doIt()
+println new EnhancedConfig(new Config()).bla
 
 
