@@ -102,5 +102,5 @@ afterEvaluate {
     }
 }
 
-tasks.release.dependsOn 'build', 'uploadArchives'
+// tasks.release.dependsOn 'build', 'uploadArchives'
 // afterReleaseBuild.dependsOn uploadArchives
