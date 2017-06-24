@@ -8,12 +8,12 @@ buildscript {
         }
     }
     dependencies {
-        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
+        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.9.0"
         classpath 'com.bmuschko:gradle-nexus-plugin:2.3.1'
-        classpath 'net.researchgate:gradle-release:2.5.0'
         classpath 'ch.raffael.pegdown-doclet:pegdown-doclet:1.3'
-        classpath "gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.13.1"
+        classpath "gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.14.0"
         classpath 'org.ajoberstar:gradle-git:1.7.2'
+        classpath 'com.github.ben-manes:gradle-versions-plugin:0.15.0'
     }
 }
 
@@ -25,11 +25,11 @@ apply plugin: 'groovy'
 apply plugin: 'jacoco'
 apply plugin: 'com.bmuschko.nexus'
 apply plugin: 'io.codearte.nexus-staging'
-// apply plugin: 'net.researchgate.release'
 apply plugin: 'ch.raffael.pegdown-doclet'
 apply plugin: 'license'
 apply plugin: 'org.ajoberstar.grgit'
 apply plugin: 'org.ajoberstar.release-opinion'
+apply plugin: 'com.github.ben-manes.versions'
 
 sourceCompatibility = JavaVersion.VERSION_1_6
 targetCompatibility = JavaVersion.VERSION_1_6
@@ -95,12 +95,11 @@ modifyPom {
 }
 
 afterEvaluate {
-    // modify dependecies for generated pom
+    // modify dependencies for generated pom
     project.poms*.whenConfigured { pom ->
         pom.dependencies.find { it.artifactId == "groovy-all" }.optional = true
         pom.dependencies.find { it.artifactId == "openapi" }.optional = true
     }
 }
 
-// tasks.release.dependsOn 'build', 'uploadArchives'
-// afterReleaseBuild.dependsOn uploadArchives
+tasks.release.dependsOn 'build', 'uploadArchives'
