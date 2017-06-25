@@ -33,7 +33,6 @@ class AbstractWrapSpec extends Specification {
     GroovyClassLoader loader
     def instance
     Class<?> clazz
-    Class<?> rwClazz
     CompilerConfiguration compilerConfiguration
 
     def setup() {
@@ -66,7 +65,7 @@ class AbstractWrapSpec extends Specification {
         clazz = loader.parseClass(code)
     }
 
-    def Class<?> getClass(String classname) {
+    Class<?> getClass(String classname) {
         loader.loadClass(classname)
     }
 }

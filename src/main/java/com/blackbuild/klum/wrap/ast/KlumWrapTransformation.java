@@ -26,6 +26,7 @@ package com.blackbuild.klum.wrap.ast;
 import com.blackbuild.klum.wrap.Wrap;
 import groovy.lang.Delegate;
 import org.codehaus.groovy.ast.*;
+import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.ast.stmt.ForStatement;
 import org.codehaus.groovy.ast.tools.GenericsUtils;
@@ -61,6 +62,9 @@ public class KlumWrapTransformation extends AbstractASTTransformation {
     @Override
     public void visit(ASTNode[] nodes, SourceUnit source) {
         init(nodes, source);
+
+        if (!(nodes[1] instanceof ClassNode))
+            return;
 
         annotatedClass = (ClassNode) nodes[1];
         wrapAnnotation = (AnnotationNode) nodes[0];
@@ -144,13 +148,15 @@ public class KlumWrapTransformation extends AbstractASTTransformation {
                 }
             }
             property.getField().setModifiers(property.getModifiers() | ACC_FINAL);
+            MethodCallExpression callAsImmutable = callX(attrX(varX("this"), constX(propertyName)), "asImmutable");
+            callAsImmutable.setSafe(true);
             annotatedClass.addMethod(
                     "get" + Verifier.capitalize(propertyName),
                     ACC_PUBLIC,
                     fieldType,
                     Parameter.EMPTY_ARRAY,
                     ClassNode.EMPTY_ARRAY,
-                    returnS(callX(attrX(varX("this"), constX(propertyName)), "asImmutable"))
+                    returnS(callAsImmutable)
             );
         }
     }
