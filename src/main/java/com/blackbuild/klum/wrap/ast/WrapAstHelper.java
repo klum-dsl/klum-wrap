@@ -14,7 +14,7 @@ public class WrapAstHelper {
 
     private WrapAstHelper() {}
 
-    static ClassNode getWrappedTypeFor(ClassNode fieldType) {
+    public static ClassNode getWrappedTypeFor(ClassNode fieldType) {
         if (fieldType == null)
             return null;
         List<AnnotationNode> annotations = fieldType.getAnnotations(WRAP_ANNOTATION);

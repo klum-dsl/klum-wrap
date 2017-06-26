@@ -1,4 +1,4 @@
-package com.blackbuild.klum.wrap.ast;
+package com.blackbuild.klum.wrap.providers;
 
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.FieldNode;
@@ -10,25 +10,24 @@ import static com.blackbuild.klum.common.CommonAstHelper.initializeCollectionOrM
 import static com.blackbuild.klum.wrap.ast.WrapAstHelper.getWrappedTypeFor;
 import static org.codehaus.groovy.ast.tools.GeneralUtils.*;
 
-public abstract class CollectionOrMapFieldProvider extends FieldProvider {
+public abstract class MultipleField extends FieldHandler {
 
     protected final ClassNode elementType;
     protected final ClassNode wrappedType;
 
-    CollectionOrMapFieldProvider(FieldNode field) {
-        super(field);
+    public MultipleField(FieldNode field, ElementFactory factory) {
+        super(field, factory);
         elementType = getElementType(field);
         wrappedType = getWrappedTypeFor(elementType);
     }
 
     @Override
-    void modifyField() {
-        super.modifyField();
+    protected void doModifyField() {
         initializeCollectionOrMap(field);
     }
 
     @Override
-    Statement getGetterCode() {
+    public Statement getGetterCode() {
         MethodCallExpression callAsImmutable = callX(attrX(varX("this"), constX(field.getName())), "asImmutable");
         callAsImmutable.setSafe(true);
         return returnS(callAsImmutable);

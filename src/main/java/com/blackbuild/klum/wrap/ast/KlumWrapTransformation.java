@@ -24,6 +24,7 @@
 package com.blackbuild.klum.wrap.ast;
 
 import com.blackbuild.klum.wrap.Wrap;
+import com.blackbuild.klum.wrap.providers.FieldHandler;
 import groovy.lang.Delegate;
 import org.codehaus.groovy.ast.*;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
@@ -104,13 +105,12 @@ public class KlumWrapTransformation extends AbstractASTTransformation {
 
     private void handleProperty(PropertyNode property, BlockStatement constructorBody) {
 
-        FieldProvider provider = FieldProvider.forField(property.getField());
+        FieldHandler handler = FieldHandler.forField(property.getField());
 
-        if (provider == null)
+        if (handler == null)
             return;
 
-
-        constructorBody.addStatement(provider.getInitializationCode());
+        constructorBody.addStatement(handler.initializeWrapperFieldS());
 
         annotatedClass.addMethod(
                 "get" + Verifier.capitalize(property.getName()),
@@ -118,10 +118,10 @@ public class KlumWrapTransformation extends AbstractASTTransformation {
                 property.getField().getType(),
                 Parameter.EMPTY_ARRAY,
                 ClassNode.EMPTY_ARRAY,
-                provider.getGetterCode()
+                handler.getGetterCode()
         );
 
-        provider.modifyField();
+        handler.modifyField();
     }
 
     ClassNode getWrappedTypeFor(ClassNode fieldType) {
