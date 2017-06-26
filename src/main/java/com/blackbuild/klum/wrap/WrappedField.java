@@ -1,5 +1,7 @@
 package com.blackbuild.klum.wrap;
 
+import groovy.transform.Undefined;
+
 import java.lang.annotation.*;
 
 @Target(ElementType.FIELD)
@@ -10,7 +12,5 @@ public @interface WrappedField {
     /**
      * The type of the factory.
      */
-    Class<?> factory() default NoValue.class;
-
-    interface NoValue {}
+    Class<?> factory() default Undefined.class;
 }
