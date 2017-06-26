@@ -25,6 +25,7 @@ package com.blackbuild.klum.wrap.ast;
 
 import com.blackbuild.klum.wrap.Wrap;
 import com.blackbuild.klum.wrap.providers.FieldHandler;
+import com.blackbuild.klum.wrap.providers.FieldHandlerFactory;
 import groovy.lang.Delegate;
 import org.codehaus.groovy.ast.*;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
@@ -105,7 +106,7 @@ public class KlumWrapTransformation extends AbstractASTTransformation {
 
     private void handleProperty(PropertyNode property, BlockStatement constructorBody) {
 
-        FieldHandler handler = FieldHandler.forField(property.getField());
+        FieldHandler handler = FieldHandlerFactory.createFor(property.getField());
 
         if (handler == null)
             return;

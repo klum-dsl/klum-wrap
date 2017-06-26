@@ -9,8 +9,8 @@ import static org.codehaus.groovy.ast.tools.GeneralUtils.*;
 
 public class CollectionField extends MultipleField {
 
-    public CollectionField(FieldNode field, ElementFactory factory) {
-        super(field, factory);
+    public CollectionField(FieldNode field) {
+        super(field);
     }
 
     @Override

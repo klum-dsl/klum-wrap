@@ -1,11 +1,11 @@
 package com.blackbuild.klum.wrap.providers;
 
+import com.blackbuild.klum.common.CommonAstHelper;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.FieldNode;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.stmt.Statement;
 
-import static com.blackbuild.klum.common.CommonAstHelper.getElementType;
 import static com.blackbuild.klum.common.CommonAstHelper.initializeCollectionOrMap;
 import static com.blackbuild.klum.wrap.ast.WrapAstHelper.getWrappedTypeFor;
 import static org.codehaus.groovy.ast.tools.GeneralUtils.*;
@@ -15,10 +15,15 @@ public abstract class MultipleField extends FieldHandler {
     protected final ClassNode elementType;
     protected final ClassNode wrappedType;
 
-    public MultipleField(FieldNode field, ElementFactory factory) {
-        super(field, factory);
-        elementType = getElementType(field);
+    public MultipleField(FieldNode field) {
+        super(field);
+        elementType = CommonAstHelper.getElementType(field);
         wrappedType = getWrappedTypeFor(elementType);
+    }
+
+    @Override
+    public ClassNode getElementType() {
+        return elementType;
     }
 
     @Override

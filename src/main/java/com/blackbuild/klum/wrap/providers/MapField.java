@@ -14,8 +14,8 @@ import static org.codehaus.groovy.ast.tools.GeneralUtils.*;
 
 public class MapField extends MultipleField {
 
-    public MapField(FieldNode field, ElementFactory factory) {
-        super(field, factory);
+    public MapField(FieldNode field) {
+        super(field);
     }
 
     @Override

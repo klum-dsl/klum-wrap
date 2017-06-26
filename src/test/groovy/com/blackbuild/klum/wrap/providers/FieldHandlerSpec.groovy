@@ -27,7 +27,7 @@ class BigName {}
         FieldNode field = (nodes[2] as ClassNode).getField("name")
 
         when:
-        handler = FieldHandler.forField(field)
+        handler = FieldHandlerFactory.createFor(field)
 
         then:
         handler instanceof SingleField
