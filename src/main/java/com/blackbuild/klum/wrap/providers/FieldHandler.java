@@ -15,6 +15,10 @@ public abstract class FieldHandler {
         this.field = field;
     }
 
+    public FieldNode getField() {
+        return field;
+    }
+
     public ElementFactory getFactory() {
         return factory;
     }

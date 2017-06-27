@@ -19,7 +19,7 @@ class EnhancedConfig {
 
 class CharArrayFactory {
     static char[] create(String inner) {
-        return inner.chars()
+            return inner.chars
     }
 }
 

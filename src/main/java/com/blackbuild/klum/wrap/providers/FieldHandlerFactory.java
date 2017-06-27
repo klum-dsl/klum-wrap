@@ -13,6 +13,10 @@ public class FieldHandlerFactory {
 
         FieldHandler result = getHandlerForCardinality(field);
 
+
+        if (WrappedFieldFactory.enrichIfValid(result))
+            return result;
+
         if (BasicWrap.enrichIfValid(result))
             return result;
 

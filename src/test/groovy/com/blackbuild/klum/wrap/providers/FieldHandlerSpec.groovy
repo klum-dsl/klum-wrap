@@ -10,7 +10,7 @@ class FieldHandlerSpec extends AbstractAstSpec {
 
     def 'FieldHandler.create'() {
         given:
-        String code = """
+        withClassCode """
 class Foo {
     String name
 }
@@ -23,7 +23,6 @@ class Bar {
 @Wrap(String)
 class BigName {}
 """
-        withClassCode(code)
         FieldNode field = (nodes[2] as ClassNode).getField("name")
 
         when:
