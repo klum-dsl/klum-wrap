@@ -32,12 +32,10 @@ public abstract class WrappedFieldFactory extends ElementFactory {
         if (member instanceof ClassExpression) {
             ClassNode memberType = member.getType();
             result.setFactory(new ClassBasedFactory(memberType, methodName));
-            return true;
-
         } else if (member instanceof ClosureExpression){
-            // not yet
+            result.setFactory(new ClosureBasedFactory((ClosureExpression) member));
         }
-        return false;
+        return result.getFactory() != null;
     }
 
     @Override
