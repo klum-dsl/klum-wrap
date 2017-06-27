@@ -13,4 +13,6 @@ public @interface WrappedField {
      * The type of the factory.
      */
     Class<?> factory() default Undefined.class;
+
+    String method() default "create";
 }

@@ -8,6 +8,7 @@ import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.expr.ClassExpression;
 import org.codehaus.groovy.ast.expr.ClosureExpression;
 import org.codehaus.groovy.ast.expr.Expression;
+import org.codehaus.groovy.transform.AbstractASTTransformation;
 
 import java.util.List;
 
@@ -26,10 +27,11 @@ public abstract class WrappedFieldFactory extends ElementFactory {
         AnnotationNode annotation = annotations.get(0);
 
         Expression member = annotation.getMember("factory");
+        String methodName = AbstractASTTransformation.getMemberStringValue(annotation, "method", "create");
 
         if (member instanceof ClassExpression) {
             ClassNode memberType = member.getType();
-            result.setFactory(new ClassBasedFactory(memberType));
+            result.setFactory(new ClassBasedFactory(memberType, methodName));
             return true;
 
         } else if (member instanceof ClosureExpression){
