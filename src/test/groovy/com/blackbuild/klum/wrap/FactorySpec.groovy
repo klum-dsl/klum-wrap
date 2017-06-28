@@ -23,54 +23,9 @@
  */
 package com.blackbuild.klum.wrap
 
-import com.blackbuild.klum.wrap.ast.KlumWrapTransformation
+class FactorySpec extends AbstractWrapSpec {
 
-import static groovyjarjarasm.asm.Opcodes.ACC_FINAL
-import static groovyjarjarasm.asm.Opcodes.ACC_PUBLIC
-
-class WrapSpec extends AbstractWrapSpec {
-
-    def "Delegate class has a single parameter constructor"() {
-        when:
-        createClass '''
-package pk
-
-@Wrap(String)
-class DecoString {}
-'''
-        then:
-        clazz.declaredConstructors.size() == 1
-        clazz.getDeclaredConstructor(String).modifiers & ACC_PUBLIC
-    }
-
-    def "Delegate field is final"() {
-        when:
-        createClass '''
-package pk
-
-@Wrap(String)
-class DecoString {}
-'''
-        then:
-        clazz.getDeclaredField(KlumWrapTransformation.DELEGATE_FIELD_NAME).modifiers & ACC_FINAL
-    }
-
-    def "Wrap delegates to delegate"() {
-        given:
-        createClass '''
-package pk
-
-@Wrap(String)
-class DecoString {}
-'''
-        when:
-        instance = clazz.newInstance('Bla')
-
-        then:
-        instance.length() == 3
-    }
-
-    def "Inner object is wrapped"() {
+    def "Create member wrapper via explicit factory"() {
         given:
         createClass '''
 package pk
@@ -81,11 +36,76 @@ class Config {
 
 @Wrap(Config)
 class EnhancedConfig {
-    BigName name
+    @WrappedField(factory = CharArrayFactory)
+    char[] name
 }
 
-@Wrap(String)
-class BigName {
+class CharArrayFactory {
+    static char[] create(String inner) {
+            return inner.chars
+    }
+}
+
+'''
+
+        def model = getClass("pk.Config").newInstance()
+        model.name = "bla"
+
+        when:
+        def wrap = getClass("pk.EnhancedConfig").newInstance(model)
+
+        then:
+        noExceptionThrown()
+        wrap.name instanceof char[]
+    }
+
+    def "Create member wrapper via explicit factory and custom name"() {
+        given:
+        createClass '''
+package pk
+
+class Config {
+    String name
+}
+
+@Wrap(Config)
+class EnhancedConfig {
+    @WrappedField(factory = CharArrayFactory, method = 'make')
+    char[] name
+}
+
+class CharArrayFactory {
+    static char[] make(String inner) {
+            return inner.chars
+    }
+}
+
+'''
+
+        def model = getClass("pk.Config").newInstance()
+        model.name = "bla"
+
+        when:
+        def wrap = getClass("pk.EnhancedConfig").newInstance(model)
+
+        then:
+        noExceptionThrown()
+        wrap.name instanceof char[]
+    }
+
+    def "Create member wrapper via factory closure"() {
+        given:
+        createClass '''
+package pk
+
+class Config {
+    String name
+}
+
+@Wrap(Config)
+class EnhancedConfig {
+    @WrappedField(factory = { it.chars })
+    char[] name
 }
 '''
 
@@ -97,10 +117,10 @@ class BigName {
 
         then:
         noExceptionThrown()
-        wrap.name.class.name == "pk.BigName"
+        wrap.name instanceof char[]
     }
 
-    def "Setters are not delegated"() {
+    def "Create member wrapper via factory closure and explicit variable"() {
         given:
         createClass '''
 package pk
@@ -111,89 +131,20 @@ class Config {
 
 @Wrap(Config)
 class EnhancedConfig {
+    @WrappedField(factory = { inner -> inner.chars })
+    char[] name
 }
 '''
 
         def model = getClass("pk.Config").newInstance()
         model.name = "bla"
-        def wrap = getClass("pk.EnhancedConfig").newInstance(model)
-
-        when:
-        wrap.name = "can't override"
-
-        then:
-        thrown(ReadOnlyPropertyException)
-    }
-
-    def "Inner list is wrapped"() {
-        given:
-        createClass '''
-package pk
-
-class Config {
-    List<String> names = ["bla", "blub"]
-}
-
-@Wrap(Config)
-class EnhancedConfig {
-    List<BigName> names
-}
-
-@Wrap(String)
-class BigName {
-    String getValue() {
-        delegate.toUpperCase()
-    }
-}
-'''
-
-        def model = getClass("pk.Config").newInstance()
 
         when:
         def wrap = getClass("pk.EnhancedConfig").newInstance(model)
 
         then:
         noExceptionThrown()
-        wrap.names[0].class.name == "pk.BigName"
-        wrap.names.collect { it.value } == ["BLA", "BLUB"]
-        wrap.names.collect { it.length() } == [3, 4]
+        wrap.name instanceof char[]
     }
-
-    def "Inner map is wrapped"() {
-        given:
-        createClass '''
-package pk
-
-class Config {
-    Map<String, String> names = [a:"bla", b:"blub"]
-}
-
-@Wrap(Config)
-class EnhancedConfig {
-    Map<String, BigName> names
-}
-
-@Wrap(String)
-class BigName {
-    String getValue() {
-        delegate.toUpperCase()
-    }
-}
-'''
-
-        def model = getClass("pk.Config").newInstance()
-
-        when:
-        def wrap = getClass("pk.EnhancedConfig").newInstance(model)
-
-        then:
-        noExceptionThrown()
-        wrap.names.a.class.name == "pk.BigName"
-        wrap.names.a.value == "BLA"
-        wrap.names.a.length() == 3
-    }
-
-
-
 
 }
