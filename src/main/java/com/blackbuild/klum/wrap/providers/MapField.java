@@ -45,7 +45,7 @@ public class MapField extends MultipleField {
     public Statement initializeWrapperFieldS() {
         return new ForStatement(
                 param(GenericsUtils.makeClassSafeWithGenerics(make(Map.Entry.class), field.getType().getGenericsTypes()[0], new GenericsType(wrappedType)), "$next"),
-                propX(varX(DELEGATE_FIELD_NAME), field.getName()),
+                propX(varX(DELEGATE_FIELD_NAME), getSourceFieldName()),
                 stmt(callX(varX(field.getName()), "put", args(propX(varX("$next"), "key"), factory.fromDelegateX(propX(varX("$next"), "value")))))
         );
     }

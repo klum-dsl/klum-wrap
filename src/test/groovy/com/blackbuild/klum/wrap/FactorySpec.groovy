@@ -25,6 +25,37 @@ package com.blackbuild.klum.wrap
 
 class FactorySpec extends AbstractWrapSpec {
 
+    def "Wrap field with different name"() {
+        given:
+        createClass '''
+package pk
+
+class Config {
+    String name
+}
+
+@Wrap(Config)
+class EnhancedConfig {
+    @WrappedField(sourceField = 'name')
+    BigName bigName
+}
+
+@Wrap(String)
+class BigName {
+}
+'''
+        def model = getClass("pk.Config").newInstance()
+        model.name = "bla"
+
+        when:
+        def wrap = getClass("pk.EnhancedConfig").newInstance(model)
+
+        then:
+        noExceptionThrown()
+        wrap.bigName.class.name == "pk.BigName"
+        wrap.bigName.length() == 3
+    }
+
     def "Create member wrapper via explicit factory"() {
         given:
         createClass '''

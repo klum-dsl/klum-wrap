@@ -38,4 +38,6 @@ public @interface WrappedField {
     Class<?> factory() default Undefined.class;
 
     String method() default "create";
+
+    String sourceField() default "";
 }

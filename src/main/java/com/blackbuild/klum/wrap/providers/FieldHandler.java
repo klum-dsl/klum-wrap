@@ -23,19 +23,32 @@
  */
 package com.blackbuild.klum.wrap.providers;
 
+import com.blackbuild.klum.common.CommonAstHelper;
+import org.codehaus.groovy.ast.AnnotationNode;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.FieldNode;
 import org.codehaus.groovy.ast.stmt.Statement;
 
+import static com.blackbuild.klum.common.CommonAstHelper.getNullSafeMemberStringValue;
 import static groovyjarjarasm.asm.Opcodes.ACC_FINAL;
 
 public abstract class FieldHandler {
 
+    private final AnnotationNode wrappedFieldAnnotation;
     protected ElementFactory factory;
     protected final FieldNode field;
 
     public FieldHandler(FieldNode field) {
         this.field = field;
+        wrappedFieldAnnotation = CommonAstHelper.getAnnotation(field, WrappedFieldFactory.WRAPPED_FIELD_ANNOTATION);
+    }
+
+    public AnnotationNode getWrappedFieldAnnotation() {
+        return wrappedFieldAnnotation;
+    }
+
+    public String getSourceFieldName() {
+        return getNullSafeMemberStringValue(wrappedFieldAnnotation, "sourceField", field.getName());
     }
 
     public FieldNode getField() {
@@ -68,5 +81,4 @@ public abstract class FieldHandler {
     protected void doModifyField() {
         field.setModifiers(field.getModifiers() | ACC_FINAL);
     }
-
 }

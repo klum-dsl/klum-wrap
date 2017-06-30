@@ -28,6 +28,7 @@ import com.blackbuild.klum.wrap.providers.FieldHandler;
 import com.blackbuild.klum.wrap.providers.FieldHandlerFactory;
 import groovy.lang.Delegate;
 import org.codehaus.groovy.ast.*;
+import org.codehaus.groovy.ast.expr.ListExpression;
 import org.codehaus.groovy.ast.stmt.BlockStatement;
 import org.codehaus.groovy.classgen.Verifier;
 import org.codehaus.groovy.control.SourceUnit;
@@ -36,7 +37,6 @@ import org.codehaus.groovy.transform.DelegateASTTransformation;
 import org.codehaus.groovy.transform.GroovyASTTransformation;
 
 import java.util.Collection;
-import java.util.List;
 
 import static org.codehaus.groovy.ast.ClassHelper.makeWithoutCaching;
 import static org.codehaus.groovy.ast.tools.GeneralUtils.*;
@@ -47,12 +47,13 @@ public class KlumWrapTransformation extends AbstractASTTransformation {
     public static final ClassNode WRAP_ANNOTATION = ClassHelper.make(Wrap.class);
     public static final String DELEGATE_FIELD_NAME = "delegate";
     public static final ClassNode DELEGATE_ANNOTATION = ClassHelper.make(Delegate.class);
-    public static ClassNode COLLECTION_TYPE = makeWithoutCaching(Collection.class);
+    public static final ClassNode COLLECTION_TYPE = makeWithoutCaching(Collection.class);
 
     private ClassNode annotatedClass;
     private AnnotationNode wrapAnnotation;
     private ClassNode delegateClass;
     private FieldNode delegateField;
+    private ListExpression delegateExcludes;
     // private List<PropertyNode>
 
     @Override
@@ -86,6 +87,8 @@ public class KlumWrapTransformation extends AbstractASTTransformation {
         AnnotationNode delegateAnnotation = new AnnotationNode(DELEGATE_ANNOTATION);
         delegateAnnotation.setMember("parameterAnnotations", constX(true));
         delegateAnnotation.setMember("methodAnnotations", constX(true));
+        delegateExcludes = new ListExpression();
+        delegateAnnotation.setMember("excludes", delegateExcludes);
         delegateField.addAnnotation(delegateAnnotation);
     }
 
@@ -123,15 +126,6 @@ public class KlumWrapTransformation extends AbstractASTTransformation {
         );
 
         handler.modifyField();
-    }
-
-    ClassNode getWrappedTypeFor(ClassNode fieldType) {
-        if (fieldType == null)
-            return null;
-        List<AnnotationNode> annotations = fieldType.getAnnotations(WRAP_ANNOTATION);
-        if (annotations.isEmpty())
-            return null;
-        return getMemberClassValue(annotations.get(0), "value");
     }
 
     private void delegateToDelegate() {

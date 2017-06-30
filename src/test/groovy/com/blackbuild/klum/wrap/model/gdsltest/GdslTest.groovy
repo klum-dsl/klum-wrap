@@ -41,6 +41,9 @@ class EnhancedConfig {
 
 @Wrap(String)
 class BigName {
+    @Delegate()
+    String bla
+
     String getValue() {
         delegate.toUpperCase()
     }

@@ -40,7 +40,7 @@ public class SingleField extends FieldHandler {
     public Statement initializeWrapperFieldS() {
         return assignS(
                 attrX(varX("this"), constX(field.getName())),
-                factory.fromDelegateX(propX(varX(DELEGATE_FIELD_NAME), field.getName()))
+                factory.fromDelegateX(propX(varX(DELEGATE_FIELD_NAME), getSourceFieldName()))
         );
     }
 

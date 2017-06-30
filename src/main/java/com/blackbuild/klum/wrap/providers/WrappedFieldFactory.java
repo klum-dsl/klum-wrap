@@ -31,8 +31,6 @@ import org.codehaus.groovy.ast.expr.ClosureExpression;
 import org.codehaus.groovy.ast.expr.Expression;
 import org.codehaus.groovy.transform.AbstractASTTransformation;
 
-import java.util.List;
-
 import static org.codehaus.groovy.ast.ClassHelper.make;
 
 public abstract class WrappedFieldFactory extends ElementFactory {
@@ -40,11 +38,10 @@ public abstract class WrappedFieldFactory extends ElementFactory {
     public static final ClassNode WRAPPED_FIELD_ANNOTATION = make(WrappedField.class);
 
     public static boolean enrichIfValid(FieldHandler result) {
-        List<AnnotationNode> annotations = result.getField().getAnnotations(WRAPPED_FIELD_ANNOTATION);
-        if (annotations.isEmpty())
+        AnnotationNode annotation = result.getWrappedFieldAnnotation();
+        if (annotation == null) {
             return false;
-
-        AnnotationNode annotation = annotations.get(0);
+        }
 
         Expression member = annotation.getMember("factory");
         String methodName = AbstractASTTransformation.getMemberStringValue(annotation, "method", "create");
